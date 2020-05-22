@@ -27,17 +27,24 @@ function createDiv(color) {
 // .value 索引值 左 右 上 下
 // 假设蛇头的默认移动方向是向左
 var headNode = createDiv('red'); // 创建一个蛇头
-headNode.value = '左'; // .value是判断蛇头的移动方向
+headNode.value = '右'; // .value是判断蛇头的移动方向
 // console.log(headNode.value);
 var foodNode = createDiv('blue'); // 创建食物
 // console.log(foodNode);
 function move() {
-  // 身体移动通过循环遍历让身体移动起来
-  // 如何让身体跟随头部移动？？？
-  // 身体跟随前一块移动
   if (bodyNodes.length > 0) {
-    for (var n = 0; n < bodyNodes.length; n++) {
-      // bodyNodes[n].value = headNode.value
+    // 身体移动通过循环遍历让身体移动起来
+    // 如何让身体跟随头部移动？？？
+    // 身体跟随前一块移动 让他走上一块上一次行走的方向
+    // 反向循环为什么就可以了？
+    for (var n = bodyNodes.length - 1; n >= 0; n--) {
+      // bodyNode[0] 的移动方向会永远和headnode保持一致
+      // if (n == 0) {
+      //   bodyNodes[n].value = headNode.value
+      // } else {
+      //   bodyNodes[n].value = bodyNodes[n - 1].value
+      // }
+      // bodyNodes[n].value上一块上一次的行走方向
       switch (bodyNodes[n].value) {
         case '左':
           bodyNodes[n].style.left = parseInt(bodyNodes[n].style.left) - 50 + 'px';
@@ -52,7 +59,12 @@ function move() {
           bodyNodes[n].style.top = parseInt(bodyNodes[n].style.top) + 50 + 'px';
           break
       }
-      bodyNodes[n].value = bodyNodes[n - ].value
+      // bodyNode[0] headNode上一次的方向
+      if (n == 0) {
+        bodyNodes[n].value = headNode.value
+      } else {
+        bodyNodes[n].value = bodyNodes[n - 1].value
+      }
     }
   }
   // 判断当前蛇头的移动方向 .value属性
@@ -70,9 +82,23 @@ function move() {
       headNode.style.top = parseInt(headNode.style.top) + 50 + 'px';
       break
   }
-  // 碰撞检测 检测是否和食物发生碰撞
-  // 吃到食物了
-  if (headNode.style.left === foodNode.style.left && headNode.style.top === foodNode.style.top) {
+  // 判断是否出边界
+  if (parseInt(headNode.style.left) < 0 || parseInt(headNode.style.left) > 450
+    || parseInt(headNode.style.top) < 0 || parseInt(headNode.style.top) > 450) {
+    clearInterval(t);
+    alert('撞墙了')
+  }
+  // 判断是否咬到身体
+  if (bodyNodes.length > 0) {
+    for (var n = 0; n < bodyNodes.length; n++) {
+      if (headNode.style.left === bodyNodes[n].style.left && headNode.style.top === bodyNodes[n].style.top) {
+        clearInterval(t);
+        alert('咬到身体了')
+      }
+    }
+  }
+  // 碰撞检测 检测是否和食物发生碰撞(两个元素重合了 headNode foodNode)
+  if (headNode.style.left === foodNode.style.left && headNode.style.top === foodNode.style.top) { // 吃到食物了
     // 产生一个新的身体 位置 跟在当前最后一块身体的后面 没有身体最后一块就是头部
     var bodyNode = createDiv('yellow');
     // 需要找到当前的最后一块 把所有的身体放入一个 数组里
@@ -107,12 +133,29 @@ function move() {
     }
     bodyNode.value = lastNode.value // 新产生的身体需要跟随前一块
     bodyNodes.push(bodyNode)
-    // 食物位置更新
-    foodNode.style.left = parseInt(Math.random() * 10) * 50 + 'px';
-    foodNode.style.top = parseInt(Math.random() * 10) * 50 + 'px';
+    // 食物位置更新 更新后和身体重合到一起(身体太长会重合)
+    // 水平
+    var level = parseInt(Math.random() * 10) * 50;
+    // 垂直
+    var vertical = parseInt(Math.random() * 10) * 50;
+    foodNode.style.left = level + 'px';
+    foodNode.style.top = vertical + 'px';
   }
 }
-var t = setInterval(move, 500)
+// 定时器，定时器时间
+var t = null,
+  time = 1000;
+function clickHandle(btn, time) {
+  document.querySelector(btn).addEventListener('click', function () {
+    clearInterval(t);
+    t = setInterval(move, time)
+  })
+}
+clickHandle('#fast', 500);
+clickHandle('#middle', 1000);
+clickHandle('#slow', 2000);
+t = setInterval(move, time);
+
 // 通过键盘的按键 来改变蛇头的移动方向
 // onkeydown 键盘按下事件 根据小键盘 上下左右键来更改 对应蛇头移动的位置
 // 键盘的键值 通过不同键值 对应不同键
@@ -121,16 +164,25 @@ document.onkeydown = function (e) {
   // console.log(e.keyCode);
   switch (e.keyCode) {
     case 37:
-      headNode.value = '左';
+      // 如果正在向右，不让掉头(向左)，只有一个头的情况例外
+      if (headNode.value != '右' || bodyNodes.length == 0) {
+        headNode.value = '左';
+      }
       break
     case 38:
-      headNode.value = '上';
+      if (headNode.value != '下' || bodyNodes.length == 0) {
+        headNode.value = '上';
+      }
       break
     case 39:
-      headNode.value = '右';
+      if (headNode.value != '左' || bodyNodes.length == 0) {
+        headNode.value = '右';
+      }
       break
     case 40:
-      headNode.value = '下';
+      if (headNode.value != '上' || bodyNodes.length == 0) {
+        headNode.value = '下';
+      }
       break
   }
 }
