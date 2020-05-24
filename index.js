@@ -5,6 +5,7 @@
 // 参数可以拓展函数 功能
 var map = document.getElementById('map');
 var bodyNodes = []; // 放置所有身体的
+var Nodes = []; // 放置整个蛇
 function createDiv(color) {
   // 创建一个div节点
   var div = document.createElement('div');
@@ -27,6 +28,7 @@ function createDiv(color) {
 // .value 索引值 左 右 上 下
 // 假设蛇头的默认移动方向是向左
 var headNode = createDiv('red'); // 创建一个蛇头
+Nodes.push(headNode);
 headNode.value = '右'; // .value是判断蛇头的移动方向
 // console.log(headNode.value);
 var foodNode = createDiv('blue'); // 创建食物
@@ -37,7 +39,7 @@ function move() {
     // 如何让身体跟随头部移动？？？
     // 身体跟随前一块移动 让他走上一块上一次行走的方向
     // 反向循环为什么就可以了？
-    for (var n = bodyNodes.length - 1; n >= 0; n--) {
+    for (var i = bodyNodes.length - 1; i >= 0; i--) {
       // bodyNode[0] 的移动方向会永远和headnode保持一致
       // if (n == 0) {
       //   bodyNodes[n].value = headNode.value
@@ -45,25 +47,25 @@ function move() {
       //   bodyNodes[n].value = bodyNodes[n - 1].value
       // }
       // bodyNodes[n].value上一块上一次的行走方向
-      switch (bodyNodes[n].value) {
+      switch (bodyNodes[i].value) {
         case '左':
-          bodyNodes[n].style.left = parseInt(bodyNodes[n].style.left) - 50 + 'px';
+          bodyNodes[i].style.left = parseInt(bodyNodes[i].style.left) - 50 + 'px';
           break
         case '右':
-          bodyNodes[n].style.left = parseInt(bodyNodes[n].style.left) + 50 + 'px';
+          bodyNodes[i].style.left = parseInt(bodyNodes[i].style.left) + 50 + 'px';
           break
         case '上':
-          bodyNodes[n].style.top = parseInt(bodyNodes[n].style.top) - 50 + 'px';
+          bodyNodes[i].style.top = parseInt(bodyNodes[i].style.top) - 50 + 'px';
           break
         case '下':
-          bodyNodes[n].style.top = parseInt(bodyNodes[n].style.top) + 50 + 'px';
+          bodyNodes[i].style.top = parseInt(bodyNodes[i].style.top) + 50 + 'px';
           break
       }
       // bodyNode[0] headNode上一次的方向
-      if (n == 0) {
-        bodyNodes[n].value = headNode.value
+      if (i == 0) {
+        bodyNodes[i].value = headNode.value
       } else {
-        bodyNodes[n].value = bodyNodes[n - 1].value
+        bodyNodes[i].value = bodyNodes[i - 1].value
       }
     }
   }
@@ -90,8 +92,8 @@ function move() {
   }
   // 判断是否咬到身体
   if (bodyNodes.length > 0) {
-    for (var n = 0; n < bodyNodes.length; n++) {
-      if (headNode.style.left === bodyNodes[n].style.left && headNode.style.top === bodyNodes[n].style.top) {
+    for (var i = 0; i < bodyNodes.length; i++) {
+      if (headNode.style.left === bodyNodes[i].style.left && headNode.style.top === bodyNodes[i].style.top) {
         clearInterval(t);
         alert('咬到身体了')
       }
@@ -131,29 +133,40 @@ function move() {
         bodyNode.style.left = lastNode.style.left;
         break
     }
-    bodyNode.value = lastNode.value // 新产生的身体需要跟随前一块
-    bodyNodes.push(bodyNode)
+    bodyNode.value = lastNode.value; // 新产生的身体需要跟随前一块
+    bodyNodes.push(bodyNode);
+    Nodes.push(bodyNode);
     // 食物位置更新 更新后和身体重合到一起(身体太长会重合)
     // 水平
     var level = parseInt(Math.random() * 10) * 50;
     // 垂直
     var vertical = parseInt(Math.random() * 10) * 50;
+    // 5
+    // 0 1 2 3 4
+    // Nodes 这个蛇的数组 除了 bodyNodes 多了一个蛇头
+    for (var i = 0; i < Nodes.length; i++) {
+      if (parseInt(Nodes[i].style.left) == level && parseInt(Nodes[i].style.top) == vertical) {
+        level = parseInt(Math.random() * 10) * 50;
+        vertical = parseInt(Math.random() * 10) * 50;
+        i = -1;
+      }
+    }
     foodNode.style.left = level + 'px';
     foodNode.style.top = vertical + 'px';
   }
 }
 // 定时器，定时器时间
 var t = null,
-  time = 1000;
+  time = 500;
 function clickHandle(btn, time) {
   document.querySelector(btn).addEventListener('click', function () {
     clearInterval(t);
     t = setInterval(move, time)
   })
 }
-clickHandle('#fast', 500);
-clickHandle('#middle', 1000);
-clickHandle('#slow', 2000);
+clickHandle('#fast', 300);
+clickHandle('#middle', 500);
+clickHandle('#slow', 1000);
 t = setInterval(move, time);
 
 // 通过键盘的按键 来改变蛇头的移动方向

@@ -2,7 +2,10 @@
   margin: 0;
   padding: 0;
 }
-table{
+body {
+  background: #ccc;
+}
+table {
   position: absolute;
   top: 0;
   left: 0;
@@ -11,12 +14,12 @@ td {
   width: 48px;
   height: 48px;
 }
-#map{
+#map {
   width: 500px;
   height: 500px;
   background: pink;
 }
-#map div{
+#map div {
   width: 50px;
   height: 50px;
   position: absolute;
